@@ -1,5 +1,3 @@
-package etu2028.framework.servlet.webframework;
-
 import java.io.*;
 
 import jakarta.servlet.http.*;
