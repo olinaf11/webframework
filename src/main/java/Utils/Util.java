@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Util {
-    public static Set<Class> churchClassBypackage(String packageName) {
+    public static Set<Class> searchClassBypackage(String packageName) {
         InputStream stream = ClassLoader.getSystemClassLoader()
                 .getResourceAsStream(packageName.replaceAll("\\.", "/"));
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
