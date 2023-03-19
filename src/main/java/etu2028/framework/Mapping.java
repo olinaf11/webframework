@@ -21,4 +21,9 @@ public class Mapping {
     public void setMethod(String method) {
         this.method = method;
     }
+
+    public Mapping(String className, String method) {
+        setClassName(className);
+        setMethod(method);
+    }
 }

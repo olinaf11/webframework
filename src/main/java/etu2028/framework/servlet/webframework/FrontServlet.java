@@ -1,5 +1,7 @@
 package etu2028.framework.servlet.webframework;
 
+import Utils.Util;
+import annotation.Url;
 import etu2028.framework.Mapping;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -9,6 +11,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class FrontServlet extends HttpServlet {
@@ -19,6 +23,20 @@ public class FrontServlet extends HttpServlet {
         return mappingUrls;
     }
 
+
+    @Override
+    public void init() throws ServletException {
+        ArrayList<Class> classes = new ArrayList<>(Util.findAllClassesUsingClassLoader("Model"));
+        for (int i = 0; i < classes.size(); i++) {
+            Method[] methods = classes.get(i).getMethods();
+            for (Method method:methods) {
+                if (method.isAnnotationPresent(Url.class)){
+                    Mapping mapping = new Mapping(classes.get(i).toString(), method.toString());
+                    getMappingUrls().put(method.getAnnotation(Url.class).name(), mapping);
+                }
+            }
+        }
+    }
     public void setMappingUrls(HashMap<String, Mapping> mappingUrls) {
         this.mappingUrls = mappingUrls;
     }
