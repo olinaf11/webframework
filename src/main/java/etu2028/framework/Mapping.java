@@ -1,7 +1,5 @@
 package etu2028.framework;
 
-import java.util.HashMap;
-
 public class Mapping {
     private String className;
     private String method;
