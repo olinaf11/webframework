@@ -1,4 +1,4 @@
-package Utils;
+package etu2028.framework.Utils;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

@@ -1,7 +1,7 @@
 package etu2028.framework.servlet.webframework;
 
-import Utils.Util;
-import annotation.Url;
+import etu2028.framework.Utils.Util;
+import etu2028.framework.annotation.Url;
 import etu2028.framework.Mapping;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -26,7 +26,7 @@ public class FrontServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        ArrayList<Class> classes = new ArrayList<>(Util.findAllClassesUsingClassLoader("Model"));
+        ArrayList<Class> classes = new ArrayList<>(Util.searchClassBypackage("Model"));
         for (int i = 0; i < classes.size(); i++) {
             Method[] methods = classes.get(i).getMethods();
             for (Method method:methods) {
