@@ -1,20 +1,28 @@
 package etu2028.framework.Utils;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Util {
-    public static Set<Class> searchClassBypackage(String packageName) {
-        InputStream stream = ClassLoader.getSystemClassLoader()
-                .getResourceAsStream(packageName.replaceAll("\\.", "/"));
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-        return reader.lines()
-                .filter(line -> line.endsWith(".class"))
-                .map(line -> getClass(line, packageName))
-                .collect(Collectors.toSet());
+    public static List<Class> searchClassBypackage(String packageName) throws URISyntaxException, ClassNotFoundException {
+        String path = packageName.replaceAll("[.]", "/");
+            URL packageUrl = Thread.currentThread().getContextClassLoader().getResource(path);
+            File packDir =new File(packageUrl.toURI());
+            File[] inside = packDir.listFiles(file->file.getName().endsWith(".class"));
+            List<Class> lists = new ArrayList<>();
+            for(File f : inside){
+                   String c = packageName+"."+f.getName().substring(0,f.getName().lastIndexOf("."));
+                   lists.add(Class.forName(c));
+            }
+        return lists;
     }
 
     private static Class getClass(String className, String packageName) {
