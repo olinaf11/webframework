@@ -1,5 +1,6 @@
 package etu2028.framework.servlet.webframework;
 
+import etu2028.framework.ModelView;
 import etu2028.framework.Utils.Util;
 import etu2028.framework.annotation.Url;
 import etu2028.framework.Mapping;
@@ -12,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -25,16 +27,23 @@ public class FrontServlet extends HttpServlet {
 
 
     @Override
-    public void init() throws ServletException {
-        ArrayList<Class> classes = new ArrayList<>(Util.searchClassBypackage("Model"));
-        for (int i = 0; i < classes.size(); i++) {
-            Method[] methods = classes.get(i).getMethods();
-            for (Method method:methods) {
-                if (method.isAnnotationPresent(Url.class)){
-                    Mapping mapping = new Mapping(classes.get(i).toString(), method.toString());
-                    getMappingUrls().put(method.getAnnotation(Url.class).name(), mapping);
+    public void init() {
+        ArrayList<Class> classes = null;
+        setMappingUrls(new HashMap<String,Mapping>());
+        String packageName = getInitParameter("path-name").trim();
+        try {
+            classes = new ArrayList<>(Util.searchClassBypackage(packageName));
+            for (int i = 0; i < classes.size(); i++) {
+                Method[] methods = classes.get(i).getMethods();
+                for (Method method:methods) {
+                    if (method.isAnnotationPresent(Url.class)){
+                        Mapping mapping = new Mapping(classes.get(i).toString(), method.toString());
+                        getMappingUrls().put(method.getAnnotation(Url.class).name(), mapping);
+                    }
                 }
             }
+        } catch (URISyntaxException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
     public void setMappingUrls(HashMap<String, Mapping> mappingUrls) {
@@ -63,6 +72,7 @@ public class FrontServlet extends HttpServlet {
         out.println("<h1>"+mapping.getMatchValue()+"</h1>");
         out.println("<h1>"+mapping.getPattern()+"</h1>");
         out.println("<h1>"+request.getContextPath()+"</h1>");
+        out.println("<h1>"+getMappingUrls().get("test-insert").getMethod()+"</h1>");
         out.println("</body></html>");
     }
 }
