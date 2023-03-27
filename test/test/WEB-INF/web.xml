@@ -4,11 +4,19 @@
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
          version="5.0">
     <servlet>
-        <servlet-name>front-servlet</servlet-name>
-        <servlet-class>etu2028.framework.servlet.webframework.FrontServlet</servlet-class>
+        <servlet-name>FrontServlet</servlet-name>
+        <servlet-class>etu2028.framework.servlet.FrontServlet</servlet-class>
+        <init-param>
+            <param-name>packages</param-name>
+            <param-value>Model</param-value>
+        </init-param>
     </servlet>
     <servlet-mapping>
-        <servlet-name>front-servlet</servlet-name>
-        <url-pattern>/*</url-pattern>
+        <servlet-name>FrontServlet</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FrontServlet</servlet-name>
+        <url-pattern>/*(?!\.jsp)</url-pattern>
     </servlet-mapping>
 </web-app>
