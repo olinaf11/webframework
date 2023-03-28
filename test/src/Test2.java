@@ -1,4 +1,4 @@
-package Model;
+package model;
 
 import etu2028.framework.annotation.Url;
 

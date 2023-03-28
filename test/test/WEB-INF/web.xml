@@ -8,15 +8,11 @@
         <servlet-class>etu2028.framework.servlet.FrontServlet</servlet-class>
         <init-param>
             <param-name>packages</param-name>
-            <param-value>Model</param-value>
+            <param-value>model</param-value>
         </init-param>
     </servlet>
     <servlet-mapping>
         <servlet-name>FrontServlet</servlet-name>
         <url-pattern>/</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>FrontServlet</servlet-name>
-        <url-pattern>/*(?!\.jsp)</url-pattern>
     </servlet-mapping>
 </web-app>
