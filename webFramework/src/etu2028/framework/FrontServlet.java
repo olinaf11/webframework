@@ -31,15 +31,15 @@ public class FrontServlet extends HttpServlet {
     public void init() {
         ArrayList<Class> classes = null;
         setMappingUrls(new HashMap<String,Mapping>());
-        String packageName = getInitParameter("packages").trim();
         try {
+            String packageName = getInitParameter("packages").trim();
             classes = new ArrayList<>(Util.searchClassBypackage(packageName));
             for (int i = 0; i < classes.size(); i++) {
                 Method[] methods = classes.get(i).getMethods();
                 for (Method method:methods) {
                     if (method.isAnnotationPresent(Url.class)){
                         Mapping mapping = new Mapping(classes.get(i).getName().trim(), method.getName().trim());
-                        getMappingUrls().put(method.getAnnotation(Url.class).name().trim(), mapping);
+                        getMappingUrls().put("/"+method.getAnnotation(Url.class).name().trim(), mapping);
                     }
                 }
             }
@@ -71,12 +71,15 @@ public class FrontServlet extends HttpServlet {
         out.println(uri);
         try {
             Mapping mapping = getMappingUrls().get(uri);
-            out.println(mapping.getClassName());
             Class<?> t = Class.forName(mapping.getClassName());
+            out.println("okok");
             Method method = t.getDeclaredMethod(mapping.getMethod(), (Class<?>[]) null);
             Object resp = method.invoke(t.getConstructor().newInstance(), (Object[]) null);
             if (resp instanceof ModelView){
                 ModelView modelView = (ModelView) resp;
+                modelView.getData().forEach((key, value) -> {
+                    request.setAttribute(key, value);
+                });
                 RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
                 requestDispatcher.forward(request, response);
             }
@@ -84,7 +87,9 @@ public class FrontServlet extends HttpServlet {
             e.printStackTrace(out);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException |
                  ServletException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace(out);
+        }catch (Exception e){
+            e.printStackTrace(out);
         }
 
 
