@@ -12,6 +12,11 @@
       <%for(String s : list){ %>
           <li><%=s%></li>
       <%}%>
+      <form method="get" action="test-insert">
+        <input type="text" name="id" value="TEST01">
+        <input name="nom" value="COCO">
+        <input type="submit">
+      </form>
     </ul>
 </body>
 </html>
