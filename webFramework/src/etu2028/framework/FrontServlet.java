@@ -92,8 +92,10 @@ public class FrontServlet extends HttpServlet {
                     modelView.getData().forEach((key, value) -> {
                         request.setAttribute(key, value);
                     });
-                    RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
-                    requestDispatcher.forward(request, response);
+                    if (modelView.getView() != null) {
+                        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                        requestDispatcher.forward(request, response);
+                    }
                 }
                 out.println("mam2");
             }
@@ -125,7 +127,7 @@ public class FrontServlet extends HttpServlet {
         }
     }
 
-    public Class<?>[] parameterType(Method method) {
+    public Class<?>[] parameterType(Method method) throws Exception {
         Parameter[] parameterTypes = method.getParameters();
         Class<?>[] parameterClass = new Class[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {

@@ -33,9 +33,10 @@ public class Test {
         modelview.addItem("ls", list);
         return modelview;
     }
-    @Url(name = "test-insert")
+    @Url(name = "test-insert") // bla/insert?a=4&&b=5
     public ModelView insert() {
-        ModelView modelView = new ModelView("employe.jsp");
+        ModelView modelView = new ModelView();
+        modelView.addItem("test", this);
         System.out.println("Nom: "+this.getNom()+"  Id: "+this.getId());
         return modelView;
     }
