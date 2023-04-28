@@ -4,9 +4,27 @@ import etu2028.framework.ModelView;
 import etu2028.framework.annotation.Url;
 
 public class Test {
+    String id;
+    String nom;
 
-    @Url(name = "test-insert")
-    public ModelView insert(){
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    @Url(name = "test-show")
+    public ModelView show(){
         ModelView modelview = new ModelView("employe.jsp");
         String[] list = new String[3];
         list[0] = "A";
@@ -14,5 +32,12 @@ public class Test {
         list[2] = "3";
         modelview.addItem("ls", list);
         return modelview;
+    }
+    @Url(name = "test-insert") // bla/insert?a=4&&b=5
+    public ModelView insert() {
+        ModelView modelView = new ModelView();
+        modelView.addItem("test", this);
+        System.out.println("Nom: "+this.getNom()+"  Id: "+this.getId());
+        return modelView;
     }
 }

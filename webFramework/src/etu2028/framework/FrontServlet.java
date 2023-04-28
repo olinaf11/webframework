@@ -12,11 +12,15 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Map;
 
 public class FrontServlet extends HttpServlet {
 
@@ -72,16 +76,28 @@ public class FrontServlet extends HttpServlet {
         try {
             Mapping mapping = getMappingUrls().get(uri);
             Class<?> t = Class.forName(mapping.getClassName());
+            Object object = t.newInstance();
             out.println("okok");
-            Method method = t.getDeclaredMethod(mapping.getMethod(), (Class<?>[]) null);
-            Object resp = method.invoke(t.getConstructor().newInstance(), (Object[]) null);
+
+            //Maka anle parametre value anle requete
+            Map<String, String[]> inputName = request.getParameterMap();
+            Method method = object.getClass().getDeclaredMethod(mapping.getMethod(), (Class<?>[]) null);
+            instantiateObjectParameter(inputName, object, response);
+            out.println(object.getClass().getName());
+            Object resp = method.invoke(object, (Object[]) null);
             if (resp instanceof ModelView){
                 ModelView modelView = (ModelView) resp;
-                modelView.getData().forEach((key, value) -> {
-                    request.setAttribute(key, value);
-                });
-                RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
-                requestDispatcher.forward(request, response);
+                if (modelView.getData()!=null){
+                    out.println("mam1");
+                    modelView.getData().forEach((key, value) -> {
+                        request.setAttribute(key, value);
+                    });
+                    if (modelView.getView() != null) {
+                        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                        requestDispatcher.forward(request, response);
+                    }
+                }
+                out.println("mam2");
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace(out);
@@ -91,7 +107,53 @@ public class FrontServlet extends HttpServlet {
         }catch (Exception e){
             e.printStackTrace(out);
         }
+    }
 
+    public void instantiateObjectParameter(Map<String, String[]> inputName, Object object, HttpServletResponse response) throws Exception{
+        PrintWriter out = new PrintWriter(response.getWriter());
+        Field[] fields = object.getClass().getDeclaredFields();
+        Method[] methods = object.getClass().getDeclaredMethods();
+        out.println(fields.length);
+        for (Field field : fields) {
+            String[] parameter = inputName.get(field.getName());
+            if (parameter!=null) {
+                out.println(methods.length);
+                Method meth = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
+                out.println("set"+Util.toUpperFirstChar(field.getName()));
+                out.println(meth);
+                Class<?>[] parameterType = parameterType(meth);
+                meth.invoke(object, dynamicCast(parameterType, parameter));
+            }
+        }
+    }
 
+    public Class<?>[] parameterType(Method method) throws Exception {
+        Parameter[] parameterTypes = method.getParameters();
+        Class<?>[] parameterClass = new Class[parameterTypes.length];
+        for (int i = 0; i < parameterTypes.length; i++) {
+            parameterClass[i] = parameterTypes[i].getType();
+        }
+        return parameterClass;
+    }
+
+    public Method stringMatching(Method[] methods, String methodName) {
+        Method matching = null;
+        for (Method method : methods) {
+
+            if (method.getName().equals(methodName)) {
+                return method;
+            }
+        }
+        return null;
+    }
+
+    public Object[] dynamicCast(Class<?>[] classes, Object[] args){
+        Object[] array = new Object[classes.length];
+        int i = 0;
+        for (Class<?> classe : classes) {
+            array[i] = classe.cast(args[i]);
+            i++;
+        }
+        return array;
     }
 }

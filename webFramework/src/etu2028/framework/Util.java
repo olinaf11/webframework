@@ -34,4 +34,12 @@ public class Util {
         }
         return null;
     }
+    public static String toUpperFirstChar(String str) {
+        String tmp;
+        tmp=str.substring(0,1);//alaina le lettre voalohany
+        str=str.substring(1);//de atao string iray ny ambiny
+        tmp=tmp.toUpperCase();//atao maj le lettre voalohany
+        tmp=tmp.concat(str);//de concatenena
+        return tmp;
+    }
 }
