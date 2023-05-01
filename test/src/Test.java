@@ -1,17 +1,18 @@
 package model;
 
 import etu2028.framework.ModelView;
+import etu2028.framework.annotation.RequestParameter;
 import etu2028.framework.annotation.Url;
 
 public class Test {
-    String id;
+    Integer id;
     String nom;
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -34,10 +35,13 @@ public class Test {
         return modelview;
     }
     @Url(name = "test-insert") // bla/insert?a=4&&b=5
-    public ModelView insert() {
-        ModelView modelView = new ModelView();
+    public ModelView insert(@RequestParameter(name = "id") Integer id, @RequestParameter(name = "nom") String nom) {
+        ModelView modelView = new ModelView("test.jsp");
+        this.setId(id);
+        setNom(nom);
         modelView.addItem("test", this);
-        System.out.println("Nom: "+this.getNom()+"  Id: "+this.getId());
+        System.out.println(modelView.getData().get("test").getClass());
+        System.out.println("Nom: "+nom+"  Id: "+id);
         return modelView;
     }
 }

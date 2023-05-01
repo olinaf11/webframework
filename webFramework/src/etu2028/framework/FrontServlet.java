@@ -3,6 +3,7 @@ package etu2028.framework.servlet;
 import etu2028.framework.ModelView;
 import etu2028.framework.Utils.Util;
 import etu2028.framework.annotation.Url;
+import etu2028.framework.annotation.*;
 import etu2028.framework.Mapping;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
 public class FrontServlet extends HttpServlet {
 
@@ -65,7 +67,7 @@ public class FrontServlet extends HttpServlet {
         this.processRequest(req, resp);
     }
 
-    public void processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         PrintWriter out = response.getWriter();
         getMappingUrls().forEach((key, value) -> {
             out.println("Url ->"+ key+" : value="+value.getClassName()+"/"+value.getMethod());
@@ -82,41 +84,61 @@ public class FrontServlet extends HttpServlet {
             //Maka anle parametre value anle requete
             Map<String, String[]> inputName = request.getParameterMap();
 
-            Field[] fields = object.getClass().getDeclaredFields();
-            Method[] methods = object.getClass().getDeclaredMethods();
-
-
-            out.println(fields.length);
-            for (Field field : fields) {
-                String[] parameter = inputName.get(field.getName());
-                if (parameter!=null) {
-                    out.println(methods.length);
-                    Method meth = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
-                    out.println("set"+Util.toUpperFirstChar(field.getName()));
-                    out.println(meth);
-                    Class<?>[] parameterType = parameterType(meth);
-                    meth.invoke(object, dynamicCast(parameterType, parameter));
-                }
-            }
+            Vector<Object> valueParams = new Vector<>();
 
             out.println(object.getClass().getName());
             Method method = stringMatching(object.getClass().getDeclaredMethods(), mapping.getMethod());
-            executeModelView(object, method, inputName);
 
-            Object resp = method.invoke(object, (Object[]) null);
-            if (resp instanceof ModelView){
-                ModelView modelView = (ModelView) resp;
-                if (modelView.getData()!=null){
-                    out.println("mam1");
-                    modelView.getData().forEach((key, value) -> {
-                        request.setAttribute(key, value);
-                    });
-                    if (modelView.getView() != null) {
-                        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
-                        requestDispatcher.forward(request, response);
+            if (checkParams(method, valueParams, request)) {
+                out.println(valueParams.toArray()[0].getClass());
+                Object resp = method.invoke(object, valueParams.toArray());
+                if (resp instanceof ModelView){
+                    ModelView modelView = (ModelView) resp;
+                    if (modelView.getData()!=null){
+                        out.println("mam3");
+                        modelView.getData().forEach((key, value) -> {
+                            System.out.println(key+" ,value"+value.getClass());
+                            request.setAttribute(key, value);
+                        });
+                        if (modelView.getView() != null) {
+                            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                            requestDispatcher.forward(request, response);
+                        }
+                    }
+                    out.println("mam4");
+                }
+            }else{
+                Field[] fields = object.getClass().getDeclaredFields();
+                Method[] methods = object.getClass().getDeclaredMethods();
+
+                out.println(fields.length);
+                for (Field field : fields) {
+                    String[] parameter = inputName.get(field.getName());
+                    if (parameter!=null) {
+                        out.println(methods.length);
+                        Method meth = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
+                        out.println("set"+Util.toUpperFirstChar(field.getName()));
+                        out.println(meth);
+                        Class<?>[] parameterType = parameterType(meth);
+                        meth.invoke(object, dynamicCast(parameterType, parameter));
                     }
                 }
-                out.println("mam2");
+
+                Object resp = method.invoke(object, (Object[]) null);
+                if (resp instanceof ModelView){
+                    ModelView modelView = (ModelView) resp;
+                    if (modelView.getData()!=null){
+                        out.println("mam1");
+                        modelView.getData().forEach((key, value) -> {
+                            request.setAttribute(key, value);
+                        });
+                        if (modelView.getView() != null) {
+                            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                            requestDispatcher.forward(request, response);
+                        }
+                    }
+                    out.println("mam2");
+                }
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace(out);
@@ -157,16 +179,35 @@ public class FrontServlet extends HttpServlet {
         }
         return array;
     }
-    public void executeModelView(Object object, Method method, Map<String, String[]> inputName){
+
+    public boolean checkParams(Method method,Vector<Object> value , HttpServletRequest request) throws ServletException{
         Parameter[] parameters = method.getParameters();
+        int count = 0;
         for (Parameter parameter : parameters) {
+            System.out.println(parameter.getType());
             if (parameter.isAnnotationPresent(RequestParameter.class)) {
-                String[] params = inputName.get(parameter.getAnnotation(RequestParameter.class).name().trim());
+                String params = request.getParameter(parameter.getAnnotation(RequestParameter.class).name());
                 if (params != null) {
-                    Class<?>[] parameterClass = parameterType(method);
-                    method.invoke(object, dynamicCast(parameterClass, params));
+                    count++;
+                    value.add(castSimple(parameter.getType(), params));
                 }
             }
         }
+        System.out.println(count);
+        System.out.println(parameters.length);
+        if (parameters.length == count && parameters.length>0) {
+            return true;
+        }
+        return false;
+    }
+
+    public Object castSimple(Class<?> type,String params){
+        System.out.println("Instance: "+type.isAssignableFrom(Integer.class));
+        if (type.isAssignableFrom(Integer.class)) {
+            return Integer.parseInt(params);
+        }else if(type.isAssignableFrom(Double.class)){
+            return Double.parseDouble(params);
+        }
+        return params;
     }
 }
