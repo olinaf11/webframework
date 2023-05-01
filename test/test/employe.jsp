@@ -13,7 +13,7 @@
           <li><%=s%></li>
       <%}%>
       <form method="get" action="test-insert">
-        <input type="text" name="id" value="TEST01">
+        <input type="text" name="id" value="101">
         <input name="nom" value="COCO">
         <input type="submit">
       </form>
