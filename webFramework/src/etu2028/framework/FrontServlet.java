@@ -81,9 +81,28 @@ public class FrontServlet extends HttpServlet {
 
             //Maka anle parametre value anle requete
             Map<String, String[]> inputName = request.getParameterMap();
-            Method method = object.getClass().getDeclaredMethod(mapping.getMethod(), (Class<?>[]) null);
-            instantiateObjectParameter(inputName, object, response);
+
+            Field[] fields = object.getClass().getDeclaredFields();
+            Method[] methods = object.getClass().getDeclaredMethods();
+
+
+            out.println(fields.length);
+            for (Field field : fields) {
+                String[] parameter = inputName.get(field.getName());
+                if (parameter!=null) {
+                    out.println(methods.length);
+                    Method meth = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
+                    out.println("set"+Util.toUpperFirstChar(field.getName()));
+                    out.println(meth);
+                    Class<?>[] parameterType = parameterType(meth);
+                    meth.invoke(object, dynamicCast(parameterType, parameter));
+                }
+            }
+
             out.println(object.getClass().getName());
+            Method method = stringMatching(object.getClass().getDeclaredMethods(), mapping.getMethod());
+            executeModelView(object, method, inputName);
+
             Object resp = method.invoke(object, (Object[]) null);
             if (resp instanceof ModelView){
                 ModelView modelView = (ModelView) resp;
@@ -106,24 +125,6 @@ public class FrontServlet extends HttpServlet {
             e.printStackTrace(out);
         }catch (Exception e){
             e.printStackTrace(out);
-        }
-    }
-
-    public void instantiateObjectParameter(Map<String, String[]> inputName, Object object, HttpServletResponse response) throws Exception{
-        PrintWriter out = new PrintWriter(response.getWriter());
-        Field[] fields = object.getClass().getDeclaredFields();
-        Method[] methods = object.getClass().getDeclaredMethods();
-        out.println(fields.length);
-        for (Field field : fields) {
-            String[] parameter = inputName.get(field.getName());
-            if (parameter!=null) {
-                out.println(methods.length);
-                Method meth = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
-                out.println("set"+Util.toUpperFirstChar(field.getName()));
-                out.println(meth);
-                Class<?>[] parameterType = parameterType(meth);
-                meth.invoke(object, dynamicCast(parameterType, parameter));
-            }
         }
     }
 
@@ -155,5 +156,17 @@ public class FrontServlet extends HttpServlet {
             i++;
         }
         return array;
+    }
+    public void executeModelView(Object object, Method method, Map<String, String[]> inputName){
+        Parameter[] parameters = method.getParameters();
+        for (Parameter parameter : parameters) {
+            if (parameter.isAnnotationPresent(RequestParameter.class)) {
+                String[] params = inputName.get(parameter.getAnnotation(RequestParameter.class).name().trim());
+                if (params != null) {
+                    Class<?>[] parameterClass = parameterType(method);
+                    method.invoke(object, dynamicCast(parameterClass, params));
+                }
+            }
+        }
     }
 }
