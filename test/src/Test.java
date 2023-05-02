@@ -35,7 +35,7 @@ public class Test {
         return modelview;
     }
     @Url(name = "test-insert") // bla/insert?a=4&&b=5
-    public ModelView insert(@RequestParameter(name = "id") Integer id, @RequestParameter(name = "nom") String nom) {
+    public ModelView insert(Integer id, String nom) {
         ModelView modelView = new ModelView("test.jsp");
         this.setId(id);
         setNom(nom);
