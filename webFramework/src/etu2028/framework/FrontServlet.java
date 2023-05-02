@@ -214,6 +214,8 @@ public class FrontServlet extends HttpServlet {
             return new SimpleDateFormat("YYYY-MM-DD").parse(String.valueOf(params));
         } else if(type == java.sql.Date.class){
             return java.sql.Date.valueOf(String.valueOf(params));
+        } else if(type == Boolean.class){
+            return Boolean.valueOf(String.valueOf(params));
         }
         return params;
     }
