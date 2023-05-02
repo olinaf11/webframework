@@ -1,7 +1,7 @@
 
 
 #compile du framework
-javac -d ./webFramework/bin ./webFramework/src/etu2028/framework/*java
+javac -parameters -d ./webFramework/bin ./webFramework/src/etu2028/framework/*java
 
 #Mampiditra anle bin ao anaty .jar files
 cd ./webFramework/bin
@@ -10,7 +10,7 @@ jar -cvf ../../framework.jar ./etu2028
 #Compile des classes du test
 cd ../../
 cp framework.jar ./test/test/WEB-INF/lib
-javac -cp ./test/test/WEB-INF/lib/framework.jar -d ./test/test/WEB-INF/classes ./test/src/*java
+javac -cp ./test/test/WEB-INF/lib/framework.jar -parameters -d ./test/test/WEB-INF/classes ./test/src/*java
 
 #archive du test en war et deplacer dans le fichier tomcat webapps
 cd ./test/test

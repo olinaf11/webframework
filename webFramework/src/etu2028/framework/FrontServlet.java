@@ -18,6 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -180,17 +181,14 @@ public class FrontServlet extends HttpServlet {
         return array;
     }
 
-    public boolean checkParams(Method method,Vector<Object> value , HttpServletRequest request) throws ServletException{
+    public boolean checkParams(Method method,Vector<Object> value , HttpServletRequest request) throws Exception,ServletException{
         Parameter[] parameters = method.getParameters();
         int count = 0;
         for (Parameter parameter : parameters) {
-            System.out.println(parameter.getType());
-            if (parameter.isAnnotationPresent(RequestParameter.class)) {
-                String params = request.getParameter(parameter.getAnnotation(RequestParameter.class).name());
-                if (params != null) {
-                    count++;
-                    value.add(castSimple(parameter.getType(), params));
-                }
+            String params = request.getParameter(parameter.getName());
+            if (params != null) {
+                count++;
+                value.add(castSimple(parameter.getType(), params));
             }
         }
         System.out.println(count);
@@ -201,12 +199,21 @@ public class FrontServlet extends HttpServlet {
         return false;
     }
 
-    public Object castSimple(Class<?> type,String params){
+    public Object castSimple(Class<?> type,String params) throws Exception{
         System.out.println("Instance: "+type.isAssignableFrom(Integer.class));
-        if (type.isAssignableFrom(Integer.class)) {
+        if (type == Integer.class) {
             return Integer.parseInt(params);
-        }else if(type.isAssignableFrom(Double.class)){
+        }else if(type == Double.class){
             return Double.parseDouble(params);
+        }
+        return castDate(type, params);
+    }
+
+    public Object castDate(Class<?> type, Object params) throws Exception{
+        if (type == java.util.Date.class) {
+            return new SimpleDateFormat("YYYY-MM-DD").parse(String.valueOf(params));
+        } else if(type == java.sql.Date.class){
+            return java.sql.Date.valueOf(String.valueOf(params));
         }
         return params;
     }
