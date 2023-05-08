@@ -1,5 +1,4 @@
 #Compile des classes du test
-cp framework.jar ./test/test/WEB-INF/lib
 javac -cp ./test/test/WEB-INF/lib/framework.jar -parameters -d ./test/test/WEB-INF/classes ./test/src/*java
 
 #archive du test en war et deplacer dans le fichier tomcat webapps
