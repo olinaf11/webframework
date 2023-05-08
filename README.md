@@ -31,4 +31,4 @@
             return modelView;
         }
     ```
-    
+    4. For Get and Post request: Make sure that your attribute of your ClassName is equals on parameters name in your view
