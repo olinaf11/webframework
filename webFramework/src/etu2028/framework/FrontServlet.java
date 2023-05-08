@@ -171,7 +171,7 @@ public class FrontServlet extends HttpServlet {
         return null;
     }
 
-    public Object[] dynamicCast(Class<?>[] classes, String[] args){
+    public Object[] dynamicCast(Class<?>[] classes, String[] args) throws Exception{
         Object[] array = new Object[classes.length];
         int i = 0;
         for (Class<?> classe : classes) {
