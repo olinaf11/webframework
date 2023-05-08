@@ -4,11 +4,7 @@
     - JDK 8 or later
     
   ### Steps
-    - Put this code in web.xml
-    	```
-		for i in range(5):
-		    print(i)
-	```
+    Put this code in web.xml
 
 
 	```		
@@ -26,8 +22,8 @@
 		</servlet-mapping>
 	```
     
-    - Put your models in package YourPackage
-    - To access the servlet on your method follow this Exemples:
+    Put your models in package YourPackage
+    To access the servlet on your method follow this Exemples:
     ```Java
         import etu2028.framework.annotation.Url;
 
