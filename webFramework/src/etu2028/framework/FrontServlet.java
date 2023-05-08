@@ -171,11 +171,11 @@ public class FrontServlet extends HttpServlet {
         return null;
     }
 
-    public Object[] dynamicCast(Class<?>[] classes, Object[] args){
+    public Object[] dynamicCast(Class<?>[] classes, String[] args){
         Object[] array = new Object[classes.length];
         int i = 0;
         for (Class<?> classe : classes) {
-            array[i] = classe.cast(args[i]);
+            array[i] = castSimple(classe, args[i]);
             i++;
         }
         return array;
@@ -199,24 +199,7 @@ public class FrontServlet extends HttpServlet {
         return false;
     }
 
-    public Object castSimple(Class<?> type,String params) throws Exception{
-        System.out.println("Instance: "+type.isAssignableFrom(Integer.class));
-        if (type == Integer.class) {
-            return Integer.parseInt(params);
-        }else if(type == Double.class){
-            return Double.parseDouble(params);
-        }
-        return castDate(type, params);
-    }
-
-    public Object castDate(Class<?> type, Object params) throws Exception{
-        if (type == java.util.Date.class) {
-            return new SimpleDateFormat("YYYY-MM-DD").parse(String.valueOf(params));
-        } else if(type == java.sql.Date.class){
-            return java.sql.Date.valueOf(String.valueOf(params));
-        } else if(type == Boolean.class){
-            return Boolean.valueOf(String.valueOf(params));
-        }
-        return params;
+    public Object castSimple(Class<?> type, String params) throws Exception{
+        return type.getDeclaredConstructor(String.class).newInstance(params);
     }
 }
