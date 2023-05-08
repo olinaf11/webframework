@@ -3,11 +3,10 @@
   ### Requierement:
     - JDK 8 or later
     
-  ### Steps
+  ### Steps:
+ 
     Put this code in web.xml
-
-
-	```		
+	``		
 		<servlet>
 			<servlet-name>FrontServlet</servlet-name>
 			<servlet-class>etu2028.framework.servlet.FrontServlet</servlet-class>
@@ -20,8 +19,7 @@
 			<servlet-name>FrontServlet</servlet-name>
 			<url-pattern>/</url-pattern>
 		</servlet-mapping>
-	```
-    
+	``
     Put your models in package YourPackage
     To access the servlet on your method follow this Exemples:
     ```Java
