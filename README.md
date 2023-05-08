@@ -5,6 +5,11 @@
     
   ### Steps
     - Put this code in web.xml
+    	```
+		for i in range(5):
+		    print(i)
+	```
+
 
 	```		
 		<servlet>
