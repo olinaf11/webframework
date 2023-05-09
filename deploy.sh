@@ -11,3 +11,5 @@ cd temp
 jar -cvf fw.war .
 cp fw.war /home/fanilo/Documents/L2/apache-tomcat-10.0.22/webapps
 cd ../
+rm -R temp
+rm -R fw.war
