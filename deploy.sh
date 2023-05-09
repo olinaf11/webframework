@@ -1,15 +1,25 @@
-#Compile des classes du test
-mkdir temp temp/WEB-INF temp/WEB-INF/classes temp/WEB-INF/lib
-cp framework.jar ./temp/WEB-INF/lib/
-cp ./test/web.xml ./temp/WEB-INF
-cp ./test/view/*.jsp ./temp/
+#all path to use
+tomcat=/home/fanilo/Documents/L2/apache-tomcat-10.0.22/webapps
+java=./test/src/*java
+webxml=./test/web.xml
+jsp=./test/view/*.jsp
 
-javac -cp ./temp/WEB-INF/lib/framework.jar -parameters -d ./temp/WEB-INF/classes ./test/src/*java
+#create directory temp
+mkdir temp temp/WEB-INF temp/WEB-INF/classes temp/WEB-INF/lib
+
+#copy all necessary in temp
+cp framework.jar ./temp/WEB-INF/lib/
+cp $webxml ./temp/WEB-INF
+cp $jsp ./temp/
+
+#Compile des classes du test
+javac -cp ./temp/WEB-INF/lib/framework.jar -parameters -d ./temp/WEB-INF/classes $java
 
 #archive du test en war et deplacer dans le fichier tomcat webapps
 cd temp
 jar -cvf fw.war .
-cp fw.war /home/fanilo/Documents/L2/apache-tomcat-10.0.22/webapps
+cp fw.war $tomcat
 cd ../
+
+#remove all temporary files
 rm -R temp
-rm -R fw.war
