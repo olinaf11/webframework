@@ -59,7 +59,7 @@ public class Test {
         ModelView modelView = new ModelView("test.jsp");
         modelView.addItem("test", this);
         System.out.println(modelView.getData().get("test").getClass());
-        System.out.println("Nom: "+nom+"  Id: "+id);
+        System.out.println("Nom: "+nom+"  Id: "+id+" File: "+fileUpload.getName());
         return modelView;
     }
 }

@@ -8,11 +8,13 @@ import etu2028.framework.annotation.*;
 import etu2028.framework.Mapping;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
@@ -27,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
+@MultipartConfig
 public class FrontServlet extends HttpServlet {
 
     private HashMap<String , Mapping> mappingUrls;
@@ -86,6 +89,7 @@ public class FrontServlet extends HttpServlet {
 
             //Maka anle parametre value anle requete
             Map<String, String[]> inputName = request.getParameterMap();
+            out.println(inputName.size());
 
             Vector<Object> valueParams = new Vector<>();
 
@@ -133,18 +137,30 @@ public class FrontServlet extends HttpServlet {
                 out.println(fields.length);
                 for (Field field : fields) {
                     String[] parameter = inputName.get(field.getName());
-                    if (parameter != null && field.getType() == FileUpload.class) {
-                        out.println(methods.length);
-                        Method meth = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
-                        meth.invoke(object, createFileUpload(parameter[0], request));
-                    }
-                    if (parameter!=null) {
-                        out.println(methods.length);
-                        Method meth = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
-                        out.println("set"+Util.toUpperFirstChar(field.getName()));
-                        out.println(meth);
-                        Class<?>[] parameterType = parameterType(meth);
-                        meth.invoke(object, dynamicCast(parameterType, parameter));
+                    System.out.println(request.getParameter(field.getName()));
+                    try {
+                        if (field.getType() == FileUpload.class) {
+                            Method meth = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
+                            meth.invoke(object, createFileUpload(field.getName(), request));
+                        }
+                        if (parameter!=null) {
+                            out.println(methods.length);
+                            Method meth = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
+                            out.println("set"+Util.toUpperFirstChar(field.getName()));
+                            out.println(meth);
+                            Class<?>[] parameterType = parameterType(meth);
+                            meth.invoke(object, dynamicCast(parameterType, parameter));
+                        }
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                        if (parameter!=null) {
+                            out.println(methods.length);
+                            Method meth = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
+                            out.println("set"+Util.toUpperFirstChar(field.getName()));
+                            out.println(meth);
+                            Class<?>[] parameterType = parameterType(meth);
+                            meth.invoke(object, dynamicCast(parameterType, parameter));
+                        }
                     }
                 }
 
