@@ -12,9 +12,10 @@
       <%for(String s : list){ %>
           <li><%=s%></li>
       <%}%>
-      <form method="get" action="test-insert">
+      <form method="post" action="test-upload" enctype="multipart/form-data">
         <input type="text" name="id" value="101">
-        <input name="nom" value="COCO">
+        <input type="file" name="fileUpload">
+        <input type="text" name="nom" value="COCO">
         <input type="submit">
       </form>
     </ul>

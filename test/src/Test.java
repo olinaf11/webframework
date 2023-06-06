@@ -1,12 +1,14 @@
 package model;
 
 import etu2028.framework.ModelView;
+import etu2028.framework.Utils.FileUpload;
 import etu2028.framework.annotation.RequestParameter;
 import etu2028.framework.annotation.Url;
 
 public class Test {
     Integer id;
     String nom;
+    FileUpload fileUpload;
 
     public void setId(Integer id) {
         this.id = id;
@@ -22,6 +24,14 @@ public class Test {
 
     public String getNom() {
         return nom;
+    }
+
+    public void setFileUpload(FileUpload fileUpload) {
+        this.fileUpload = fileUpload;
+    }
+
+    public FileUpload getFileUpload() {
+        return fileUpload;
     }
 
     @Url(name = "test-show")
@@ -42,6 +52,14 @@ public class Test {
         modelView.addItem("test", this);
         System.out.println(modelView.getData().get("test").getClass());
         System.out.println("Nom: "+nom+"  Id: "+id);
+        return modelView;
+    }
+    @Url(name = "test-upload") // bla/insert?a=4&&b=5
+    public ModelView upload() {
+        ModelView modelView = new ModelView("test.jsp");
+        modelView.addItem("test", this);
+        System.out.println(modelView.getData().get("test").getClass());
+        System.out.println("Nom: "+nom+"  Id: "+id+" File: "+fileUpload.getName());
         return modelView;
     }
 }

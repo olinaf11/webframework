@@ -6,4 +6,3 @@ cd ./webFramework/bin
 jar -cvf ../../framework.jar ./etu2028
 
 cd ../../
-cp framework.jar ./test/test/WEB-INF/lib
