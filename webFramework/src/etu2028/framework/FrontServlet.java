@@ -33,9 +33,13 @@ import java.util.Vector;
 public class FrontServlet extends HttpServlet {
 
     private HashMap<String , Mapping> mappingUrls;
+    private HashMap<String, Object> singleton;
 
     public HashMap<String, Mapping> getMappingUrls() {
         return mappingUrls;
+    }
+    public HashMap<String, Object> getSingleton(){
+        return singleton;
     }
 
 
@@ -43,11 +47,17 @@ public class FrontServlet extends HttpServlet {
     public void init() {
         ArrayList<Class> classes = null;
         setMappingUrls(new HashMap<String,Mapping>());
+        setSingleton(new HashMap<String, Object>());
         try {
             String packageName = getInitParameter("packages").trim();
             classes = new ArrayList<>(Util.searchClassBypackage(packageName));
             for (int i = 0; i < classes.size(); i++) {
                 Method[] methods = classes.get(i).getMethods();
+                if (classes.get(i).isAnnotationPresent(Scope.class)) {
+                    if (((Scope) classes.get(i).getAnnotation(Scope.class)).value().trim().compareTo("singleton") == 0 ) {
+                        singleton.put(classes.get(i).getName(), null);
+                    }
+                }
                 for (Method method:methods) {
                     if (method.isAnnotationPresent(Url.class)){
                         Mapping mapping = new Mapping(classes.get(i).getName().trim(), method.getName().trim());
@@ -61,6 +71,9 @@ public class FrontServlet extends HttpServlet {
     }
     public void setMappingUrls(HashMap<String, Mapping> mappingUrls) {
         this.mappingUrls = mappingUrls;
+    }
+    public void setSingleton(HashMap<String, Object> singleton) {
+        this.singleton = singleton;
     }
 
     @Override
@@ -84,7 +97,17 @@ public class FrontServlet extends HttpServlet {
         try {
             Mapping mapping = getMappingUrls().get(uri);
             Class<?> t = Class.forName(mapping.getClassName());
-            Object object = t.newInstance();
+            Object object = null;
+            if (t.isAnnotationPresent(Scope.class)) {
+                if (getSingleton().get(mapping.getClassName()) == null) {
+                    getSingleton().put(mapping.getClassName(), t.newInstance());
+                }
+                object = getSingleton().get(mapping.getClassName());
+                toDefault(object);
+            }else{
+                object = t.newInstance();
+            }
+
             out.println("okok");
 
             //Maka anle parametre value anle requete
@@ -176,7 +199,13 @@ public class FrontServlet extends HttpServlet {
                             RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
                             requestDispatcher.forward(request, response);
                         }
+                    }else{
+                        if (modelView.getView() != null) {
+                            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                            requestDispatcher.forward(request, response);
+                        }
                     }
+
                     out.println("mam2");
                 }
             }
@@ -257,5 +286,20 @@ public class FrontServlet extends HttpServlet {
             }
         }
         return "";
+    }
+
+    private void toDefault(Object object) throws Exception{
+        Field[] fields = object.getClass().getDeclaredFields();
+        Method[] methods = object.getClass().getDeclaredMethods();
+        for (Field field : fields) {
+            if (field.getName().compareTo("count")==0) {
+                Method method = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
+                Method get = stringMatching(methods, "get"+Util.toUpperFirstChar(field.getName()));
+                method.invoke(object, ((int)get.invoke(object))+1);
+            }else{
+                Method method = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
+                method.invoke(object, (Object)null);
+            }
+        }
     }
 }

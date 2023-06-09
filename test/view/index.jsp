@@ -9,5 +9,6 @@
 </h1>
 <br/>
 <a href="test-show">Hello Servlet</a>
+<a href="test2-insert?ok=ok">Coucou</a>
 </body>
 </html>
