@@ -8,10 +8,12 @@ import etu2028.framework.annotation.*;
 import etu2028.framework.Mapping;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
 import java.io.File;
@@ -22,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.URISyntaxException;
+import java.net.http.HttpRequest;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -87,6 +90,9 @@ public class FrontServlet extends HttpServlet {
     }
 
     public void processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        String sessionName = getInitParameter("sessionName");
+        String sessionProfil = getInitParameter("sessionProfil");
+
         PrintWriter out = response.getWriter();
         getMappingUrls().forEach((key, value) -> {
             out.println("Url ->"+ key+" : value="+value.getClassName()+"/"+value.getMethod());
@@ -190,6 +196,7 @@ public class FrontServlet extends HttpServlet {
                 Object resp = method.invoke(object, (Object[]) null);
                 if (resp instanceof ModelView){
                     ModelView modelView = (ModelView) resp;
+                    checkMethod(method, modelView, request, sessionName, sessionProfil);
                     if (modelView.getData()!=null){
                         out.println("mam1");
                         modelView.getData().forEach((key, value) -> {
@@ -299,6 +306,20 @@ public class FrontServlet extends HttpServlet {
             }else{
                 Method method = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
                 method.invoke(object, (Object)null);
+            }
+        }
+    }
+
+    public void checkMethod(Method method, ModelView modelView, HttpServletRequest request, String sessionName, String sessionProfil) throws Exception {
+        if (method.getAnnotation(Authentification.class)!=null) {
+            if (modelView.getSession()!=null) {
+                if (((Authentification)method.getAnnotation(Authentification.class)).user().trim().compareTo(sessionProfil) == 0) {
+                    HttpSession session = request.getSession();
+                    session.setAttribute(sessionName, modelView.getSession().get(sessionName));
+                    session.setAttribute(sessionProfil, modelView.getSession().get(sessionName));
+                }else{
+                    throw new Exception("The profil are different");
+                }
             }
         }
     }
