@@ -8,10 +8,12 @@ import etu2028.framework.annotation.*;
 import etu2028.framework.Mapping;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
 import java.io.File;
@@ -22,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.URISyntaxException;
+import java.net.http.HttpRequest;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -34,6 +37,21 @@ public class FrontServlet extends HttpServlet {
 
     private HashMap<String , Mapping> mappingUrls;
     private HashMap<String, Object> singleton;
+    private String sessionName;
+    private String sessionProfile;
+
+    public void setSessionName(String sessionName) {
+        this.sessionName = sessionName;
+    }
+    public void setSessionProfile(String sessionProfile) {
+        this.sessionProfile = sessionProfile;
+    }
+    public String getSessionName() {
+        return sessionName;
+    }
+    public String getSessionProfile() {
+        return sessionProfile;
+    }
 
     public HashMap<String, Mapping> getMappingUrls() {
         return mappingUrls;
@@ -48,6 +66,9 @@ public class FrontServlet extends HttpServlet {
         ArrayList<Class> classes = null;
         setMappingUrls(new HashMap<String,Mapping>());
         setSingleton(new HashMap<String, Object>());
+        this.setSessionName(getInitParameter("sessionName"));
+        this.setSessionProfile(getInitParameter("sessionProfil"));
+
         try {
             String packageName = getInitParameter("packages").trim();
             classes = new ArrayList<>(Util.searchClassBypackage(packageName));
@@ -190,23 +211,47 @@ public class FrontServlet extends HttpServlet {
                 Object resp = method.invoke(object, (Object[]) null);
                 if (resp instanceof ModelView){
                     ModelView modelView = (ModelView) resp;
-                    if (modelView.getData()!=null){
-                        out.println("mam1");
-                        modelView.getData().forEach((key, value) -> {
-                            request.setAttribute(key, value);
-                        });
-                        if (modelView.getView() != null) {
-                            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
-                            requestDispatcher.forward(request, response);
+                    HttpSession session = request.getSession();
+                    if (method.isAnnotationPresent(Authentification.class)) {
+                        out.println("sessionProfile :"+request.getSession().getAttribute(getSessionName()).getClass());
+                        if (((Authentification)method.getAnnotation(Authentification.class)).user().trim().compareTo((String)request.getSession().getAttribute(getSessionProfile()))== 0) {
+                            if (modelView.getData()!=null){
+                                out.println("mam1");
+                                modelView.getData().forEach((key, value) -> {
+                                    request.setAttribute(key, value);
+                                });
+                                if (modelView.getView() != null) {
+                                    RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                                    requestDispatcher.forward(request, response);
+                                }
+                            }else{
+                                if (modelView.getView() != null) {
+                                    RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                                    requestDispatcher.forward(request, response);
+                                }
+                            }
+                        }
+                        else{
+                            throw new Exception("Vous n'avez pas le droit d'acceder a cette page");
                         }
                     }else{
-                        if (modelView.getView() != null) {
-                            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
-                            requestDispatcher.forward(request, response);
+                        checkMethod(method, modelView, request, session, getSessionName(), getSessionProfile());
+                        if (modelView.getData()!=null){
+                            out.println("mam1");
+                            modelView.getData().forEach((key, value) -> {
+                                request.setAttribute(key, value);
+                            });
+                            if (modelView.getView() != null) {
+                                RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                                requestDispatcher.forward(request, response);
+                            }
+                        }else{
+                            if (modelView.getView() != null) {
+                                RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                                requestDispatcher.forward(request, response);
+                            }
                         }
                     }
-
-                    out.println("mam2");
                 }
             }
         } catch (ClassNotFoundException e) {
@@ -300,6 +345,27 @@ public class FrontServlet extends HttpServlet {
                 Method method = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
                 method.invoke(object, (Object)null);
             }
+        }
+    }
+
+    public void checkMethod(Method method, ModelView modelView, HttpServletRequest request, HttpSession session, String sessionName, String sessionProfil) throws Exception {
+        if (modelView.getSession()!=null) {
+            if (modelView.getSession().get(sessionName)!=null && modelView.getSession().get(sessionProfil)!=null) {
+                sessionAdd(session, sessionProfil, sessionName, modelView);
+            }else{
+                sessionAdd(session, sessionProfil, sessionName, modelView);
+            }
+        }else{
+            throw new Exception("La session n'existe pas");
+        }
+    }
+    public void sessionAdd(HttpSession session, String sessionProfil, String sessionName, ModelView modelView){
+        if (session.getAttribute(sessionName) != null && session.getAttribute(sessionProfil)!=null) {
+            modelView.getSession().put(sessionName, session.getAttribute(sessionName));
+            modelView.getSession().put(sessionProfil, session.getAttribute(sessionProfil));
+        }else{
+            session.setAttribute(sessionName, modelView.getSession().get(sessionName));
+            session.setAttribute(sessionProfil, modelView.getSession().get(sessionProfil));
         }
     }
 }
