@@ -24,9 +24,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.URISyntaxException;
-import java.net.http.HttpRequest;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -154,26 +154,27 @@ public class FrontServlet extends HttpServlet {
                     out.println("Value: " + paramValue);
                 }
             }
-
+            HttpSession session = request.getSession();
             if (checkParams(method, valueParams, request)) {
-                System.out.println("content type :"+request.getContentType());
-                out.println(valueParams.toArray()[0].getClass());
-                Object resp = method.invoke(object, valueParams.toArray());
-                if (resp instanceof ModelView){
-                    ModelView modelView = (ModelView) resp;
-                    if (modelView.getData()!=null){
-                        out.println("mam3");
-                        modelView.getData().forEach((key, value) -> {
-                            System.out.println(key+" ,value"+value.getClass());
-                            request.setAttribute(key, value);
-                        });
-                        if (modelView.getView() != null) {
-                            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
-                            requestDispatcher.forward(request, response);
+                if (method.isAnnotationPresent(Session.class)) {
+                    Field sessionField = object.getClass().getDeclaredField("session");
+                    if (sessionField!=null) {
+                        Method sessMethod = stringMatching(object.getClass().getDeclaredMethods(), "set"+Util.toUpperFirstChar(sessionField.getName()));
+                        HashMap<String, Object> sessionMap = new HashMap<>();
+                        ArrayList<String> listSession = Collections.list(session.getAttributeNames());
+                        out.println(listSession.size()+" taille session");
+                        for (String string : listSession) {
+
+                            out.println(session.getAttribute(string)+"  et"+string);
+                            sessionMap.put(string, session.getAttribute(string));
                         }
+                        out.println(sessMethod.getName());
+
+                        sessMethod.invoke(object, sessionMap);
                     }
-                    out.println("mam4");
                 }
+                Object resp = method.invoke(object, valueParams.toArray());
+                castModelview(request, response, method, object, resp);
             }else{
                 Field[] fields = object.getClass().getDeclaredFields();
                 Method[] methods = object.getClass().getDeclaredMethods();
@@ -207,52 +208,25 @@ public class FrontServlet extends HttpServlet {
                         }
                     }
                 }
+                if (method.isAnnotationPresent(Session.class)) {
+                    Field sessionField = object.getClass().getDeclaredField("session");
+                    if (sessionField!=null) {
+                        Method sessMethod = stringMatching(object.getClass().getDeclaredMethods(), "set"+Util.toUpperFirstChar(sessionField.getName()));
+                        HashMap<String, Object> sessionMap = new HashMap<>();
+                        ArrayList<String> listSession = Collections.list(session.getAttributeNames());
+                        out.println(listSession.size()+" taille session");
+                        for (String string : listSession) {
 
-                Object resp = method.invoke(object, (Object[]) null);
-                if (resp instanceof ModelView){
-                    ModelView modelView = (ModelView) resp;
-                    HttpSession session = request.getSession();
-                    if (method.isAnnotationPresent(Authentification.class)) {
-                        out.println("sessionProfile :"+request.getSession().getAttribute(getSessionName()).getClass());
-                        if (((Authentification)method.getAnnotation(Authentification.class)).user().trim().compareTo((String)request.getSession().getAttribute(getSessionProfile()))== 0) {
-                            if (modelView.getData()!=null){
-                                out.println("mam1");
-                                modelView.getData().forEach((key, value) -> {
-                                    request.setAttribute(key, value);
-                                });
-                                if (modelView.getView() != null) {
-                                    RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
-                                    requestDispatcher.forward(request, response);
-                                }
-                            }else{
-                                if (modelView.getView() != null) {
-                                    RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
-                                    requestDispatcher.forward(request, response);
-                                }
-                            }
+                            out.println(session.getAttribute(string)+"  et  " +string);
+                            sessionMap.put(string, session.getAttribute(string));
                         }
-                        else{
-                            throw new Exception("Vous n'avez pas le droit d'acceder a cette page");
-                        }
-                    }else{
-                        checkMethod(method, modelView, request, session, getSessionName(), getSessionProfile());
-                        if (modelView.getData()!=null){
-                            out.println("mam1");
-                            modelView.getData().forEach((key, value) -> {
-                                request.setAttribute(key, value);
-                            });
-                            if (modelView.getView() != null) {
-                                RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
-                                requestDispatcher.forward(request, response);
-                            }
-                        }else{
-                            if (modelView.getView() != null) {
-                                RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
-                                requestDispatcher.forward(request, response);
-                            }
-                        }
+                        out.println(sessMethod.getName());
+
+                        sessMethod.invoke(object, sessionMap);
                     }
                 }
+                Object resp = method.invoke(object, (Object[])null);
+                castModelview(request, response, method, object, resp);
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace(out);
@@ -366,6 +340,57 @@ public class FrontServlet extends HttpServlet {
         }else{
             session.setAttribute(sessionName, modelView.getSession().get(sessionName));
             session.setAttribute(sessionProfil, modelView.getSession().get(sessionProfil));
+        }
+    }
+    private void dispatcher(HttpServletRequest request, HttpServletResponse response, ModelView modelView) throws Exception{
+        if (modelView.getData()!=null){
+            modelView.getData().forEach((key, value) -> {
+                request.setAttribute(key, value);
+            });
+            if (modelView.getView() != null) {
+                RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                requestDispatcher.forward(request, response);
+            }
+        }else{
+            if (modelView.getView() != null) {
+                RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                requestDispatcher.forward(request, response);
+            }
+        }
+    }
+    private void castModelview(HttpServletRequest request, HttpServletResponse response, Method method, Object object, Object resp) throws Exception, IOException{
+        if (resp instanceof ModelView){
+            ModelView modelView = (ModelView) resp;
+            if (method.isAnnotationPresent(Session.class)) {
+                Field sessionField = object.getClass().getDeclaredField("session");
+                if (sessionField!=null) {
+                    Method sessMethod = stringMatching(object.getClass().getDeclaredMethods(), "get"+Util.toUpperFirstChar(sessionField.getName()));
+                    Object sessMap = sessMethod.invoke(object);
+                    if (sessMap instanceof HashMap) {
+                        response.getWriter().println(sessMethod.getName()+"anarana");
+                        HashMap<String, Object> map = (HashMap)sessMap;
+                        PrintWriter out = response.getWriter();
+                        map.forEach((key, value) -> {
+                            out.println(key+"  "+value.getClass().getName());
+                            request.getSession().setAttribute(key, value);
+                        });
+                    }
+                }
+
+            }
+            if (method.isAnnotationPresent(Authentification.class)) {
+                if (((Authentification)method.getAnnotation(Authentification.class)).user().trim().compareTo((String)request.getSession().getAttribute(getSessionProfile()))== 0) {
+                    dispatcher(request, response, modelView);
+                }
+                else{
+                    throw new Exception("Vous n'avez pas le droit d'acceder a cette page");
+                }
+            }else{
+                checkMethod(method, modelView, request, request.getSession(), getSessionName(), getSessionProfile());
+                dispatcher(request, response, modelView);
+            }
+        }else{
+            throw new Exception("La method "+method.getName()+" doit avoir comme type de retour Model View");
         }
     }
 }

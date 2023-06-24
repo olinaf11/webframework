@@ -1,5 +1,7 @@
 package model;
 
+import java.util.HashMap;
+
 import etu2028.framework.ModelView;
 import etu2028.framework.annotation.*;
 
@@ -7,7 +9,14 @@ import etu2028.framework.annotation.*;
 public class Test2 {
     String ok;
     String admin;
+    HashMap<String, Object> session;
 
+    public HashMap<String, Object> getSession() {
+        return session;
+    }
+    public void setSession(HashMap<String, Object> session) {
+        this.session = session;
+    }
     public String getOk() {
         return ok;
     }
@@ -28,16 +37,19 @@ public class Test2 {
         return modelView;
     }
 
+    @Session
     @Url(name = "test2-login")
     public ModelView Login() {
         ModelView modelView = new ModelView("employe.jsp");
         modelView.addItem("test", this);
-        modelView.addSessionItem("isConnected", this);
+        setSession(new HashMap<>());
+        getSession().put("testSession", this.getAdmin());
         modelView.addSessionItem("profil", this.getAdmin());
         return modelView;
     }
 
-    @Authentification(user = "user")
+    @Session
+    @Authentification(user = "admin")
     @Url(name = "test2-list")
     public ModelView list(){
         ModelView modelView = new ModelView("list.jsp");
@@ -45,7 +57,9 @@ public class Test2 {
         list[0] = "A";
         list[1] = "B";
         list[2] = "3";
+        String s = (String)getSession().get("testSession");
         modelView.addItem("ls", list);
+        modelView.addItem("session", s);
         return modelView;
     }
 }
