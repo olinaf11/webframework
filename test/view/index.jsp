@@ -10,5 +10,10 @@
 <br/>
 <a href="test-show">Hello Servlet</a>
 <a href="test2-insert?ok=ok">Coucou</a>
+<form method="get" action="test2-login">
+    <input type="text" name="ok" value="COCO">
+    <input type="text" name="admin" value="admin">
+    <input type="submit">
+</form>
 </body>
 </html>

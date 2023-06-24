@@ -37,6 +37,21 @@ public class FrontServlet extends HttpServlet {
 
     private HashMap<String , Mapping> mappingUrls;
     private HashMap<String, Object> singleton;
+    private String sessionName;
+    private String sessionProfile;
+
+    public void setSessionName(String sessionName) {
+        this.sessionName = sessionName;
+    }
+    public void setSessionProfile(String sessionProfile) {
+        this.sessionProfile = sessionProfile;
+    }
+    public String getSessionName() {
+        return sessionName;
+    }
+    public String getSessionProfile() {
+        return sessionProfile;
+    }
 
     public HashMap<String, Mapping> getMappingUrls() {
         return mappingUrls;
@@ -51,6 +66,9 @@ public class FrontServlet extends HttpServlet {
         ArrayList<Class> classes = null;
         setMappingUrls(new HashMap<String,Mapping>());
         setSingleton(new HashMap<String, Object>());
+        this.setSessionName(getInitParameter("sessionName"));
+        this.setSessionProfile(getInitParameter("sessionProfil"));
+
         try {
             String packageName = getInitParameter("packages").trim();
             classes = new ArrayList<>(Util.searchClassBypackage(packageName));
@@ -90,9 +108,6 @@ public class FrontServlet extends HttpServlet {
     }
 
     public void processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        String sessionName = getInitParameter("sessionName");
-        String sessionProfil = getInitParameter("sessionProfil");
-
         PrintWriter out = response.getWriter();
         getMappingUrls().forEach((key, value) -> {
             out.println("Url ->"+ key+" : value="+value.getClassName()+"/"+value.getMethod());
@@ -196,24 +211,47 @@ public class FrontServlet extends HttpServlet {
                 Object resp = method.invoke(object, (Object[]) null);
                 if (resp instanceof ModelView){
                     ModelView modelView = (ModelView) resp;
-                    checkMethod(method, modelView, request, sessionName, sessionProfil);
-                    if (modelView.getData()!=null){
-                        out.println("mam1");
-                        modelView.getData().forEach((key, value) -> {
-                            request.setAttribute(key, value);
-                        });
-                        if (modelView.getView() != null) {
-                            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
-                            requestDispatcher.forward(request, response);
+                    HttpSession session = request.getSession();
+                    if (method.isAnnotationPresent(Authentification.class)) {
+                        out.println("sessionProfile :"+request.getSession().getAttribute(getSessionName()).getClass());
+                        if (((Authentification)method.getAnnotation(Authentification.class)).user().trim().compareTo((String)request.getSession().getAttribute(getSessionProfile()))== 0) {
+                            if (modelView.getData()!=null){
+                                out.println("mam1");
+                                modelView.getData().forEach((key, value) -> {
+                                    request.setAttribute(key, value);
+                                });
+                                if (modelView.getView() != null) {
+                                    RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                                    requestDispatcher.forward(request, response);
+                                }
+                            }else{
+                                if (modelView.getView() != null) {
+                                    RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                                    requestDispatcher.forward(request, response);
+                                }
+                            }
+                        }
+                        else{
+                            throw new Exception("Vous n'avez pas le droit d'acceder a cette page");
                         }
                     }else{
-                        if (modelView.getView() != null) {
-                            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
-                            requestDispatcher.forward(request, response);
+                        checkMethod(method, modelView, request, session, getSessionName(), getSessionProfile());
+                        if (modelView.getData()!=null){
+                            out.println("mam1");
+                            modelView.getData().forEach((key, value) -> {
+                                request.setAttribute(key, value);
+                            });
+                            if (modelView.getView() != null) {
+                                RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                                requestDispatcher.forward(request, response);
+                            }
+                        }else{
+                            if (modelView.getView() != null) {
+                                RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
+                                requestDispatcher.forward(request, response);
+                            }
                         }
                     }
-
-                    out.println("mam2");
                 }
             }
         } catch (ClassNotFoundException e) {
@@ -310,17 +348,24 @@ public class FrontServlet extends HttpServlet {
         }
     }
 
-    public void checkMethod(Method method, ModelView modelView, HttpServletRequest request, String sessionName, String sessionProfil) throws Exception {
-        if (method.getAnnotation(Authentification.class)!=null) {
-            if (modelView.getSession()!=null) {
-                if (((Authentification)method.getAnnotation(Authentification.class)).user().trim().compareTo(sessionProfil) == 0) {
-                    HttpSession session = request.getSession();
-                    session.setAttribute(sessionName, modelView.getSession().get(sessionName));
-                    session.setAttribute(sessionProfil, modelView.getSession().get(sessionName));
-                }else{
-                    throw new Exception("The profil are different");
-                }
+    public void checkMethod(Method method, ModelView modelView, HttpServletRequest request, HttpSession session, String sessionName, String sessionProfil) throws Exception {
+        if (modelView.getSession()!=null) {
+            if (modelView.getSession().get(sessionName)!=null && modelView.getSession().get(sessionProfil)!=null) {
+                sessionAdd(session, sessionProfil, sessionName, modelView);
+            }else{
+                sessionAdd(session, sessionProfil, sessionName, modelView);
             }
+        }else{
+            throw new Exception("La session n'existe pas");
+        }
+    }
+    public void sessionAdd(HttpSession session, String sessionProfil, String sessionName, ModelView modelView){
+        if (session.getAttribute(sessionName) != null && session.getAttribute(sessionProfil)!=null) {
+            modelView.getSession().put(sessionName, session.getAttribute(sessionName));
+            modelView.getSession().put(sessionProfil, session.getAttribute(sessionProfil));
+        }else{
+            session.setAttribute(sessionName, modelView.getSession().get(sessionName));
+            session.setAttribute(sessionProfil, modelView.getSession().get(sessionProfil));
         }
     }
 }

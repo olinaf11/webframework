@@ -18,7 +18,7 @@
         <init-param>
             <param-name>sessionProfil</param-name>
             <!-- value izay tiany -->
-            <param-value>isConnected</param-value>
+            <param-value>profil</param-value>
         </init-param>
     </servlet>
     <servlet-mapping>
