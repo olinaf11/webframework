@@ -1,6 +1,7 @@
 <%
   String[] test = (String[])request.getAttribute("ls");
   String sess = (String)request.getAttribute("session");
+  String json = (String)request.getAttribute("json");
 %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
@@ -12,5 +13,6 @@
         <p><%=t%></p>
     <% } %>
     <p><%=sess%></p>
+    <p><%=json%></p>
 </body>
 </html>

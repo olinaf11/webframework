@@ -57,6 +57,7 @@ public class Test2 {
         list[0] = "A";
         list[1] = "B";
         list[2] = "3";
+        modelView.setJson(true);
         String s = (String)getSession().get("testSession");
         modelView.addItem("ls", list);
         modelView.addItem("session", s);
