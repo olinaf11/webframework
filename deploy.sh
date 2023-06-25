@@ -1,5 +1,7 @@
 #all path to use
 tomcat=/home/fanilo/Documents/L2/apache-tomcat-10.0.22/webapps
+jar=*.jar
+jarc=./temp/WEB-INF/lib/framework.jar:./temp/WEB-INF/lib/gson-2.8.2.jar
 java=./test/src/*java
 webxml=./test/web.xml
 jsp=./test/view/*.jsp
@@ -8,7 +10,7 @@ jsp=./test/view/*.jsp
 mkdir temp temp/WEB-INF temp/WEB-INF/classes temp/WEB-INF/lib
 
 #copy all necessary in temp
-cp framework.jar ./temp/WEB-INF/lib/
+cp $jar ./temp/WEB-INF/lib/
 cp $webxml ./temp/WEB-INF
 cp $jsp ./temp/
 
