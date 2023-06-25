@@ -32,6 +32,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 @MultipartConfig
 public class FrontServlet extends HttpServlet {
 
@@ -39,6 +42,7 @@ public class FrontServlet extends HttpServlet {
     private HashMap<String, Object> singleton;
     private String sessionName;
     private String sessionProfile;
+    private String json;
 
     public void setSessionName(String sessionName) {
         this.sessionName = sessionName;
@@ -58,6 +62,12 @@ public class FrontServlet extends HttpServlet {
     }
     public HashMap<String, Object> getSingleton(){
         return singleton;
+    }
+    public void setJson(String json) {
+        this.json = json;
+    }
+    public String getJson() {
+        return json;
     }
 
 
@@ -347,6 +357,9 @@ public class FrontServlet extends HttpServlet {
             modelView.getData().forEach((key, value) -> {
                 request.setAttribute(key, value);
             });
+            if (getJson()!=null) {
+                request.setAttribute("json", getJson());
+            }
             if (modelView.getView() != null) {
                 RequestDispatcher requestDispatcher = request.getRequestDispatcher("/"+modelView.getView().trim());
                 requestDispatcher.forward(request, response);
@@ -361,17 +374,20 @@ public class FrontServlet extends HttpServlet {
     private void castModelview(HttpServletRequest request, HttpServletResponse response, Method method, Object object, Object resp) throws Exception, IOException{
         if (resp instanceof ModelView){
             ModelView modelView = (ModelView) resp;
+            if (modelView.isJson()) {
+                Gson gson = new GsonBuilder().create();
+                String json = gson.toJson(modelView.getData());
+                setJson(json);
+            }
             if (method.isAnnotationPresent(Session.class)) {
                 Field sessionField = object.getClass().getDeclaredField("session");
                 if (sessionField!=null) {
                     Method sessMethod = stringMatching(object.getClass().getDeclaredMethods(), "get"+Util.toUpperFirstChar(sessionField.getName()));
                     Object sessMap = sessMethod.invoke(object);
                     if (sessMap instanceof HashMap) {
-                        response.getWriter().println(sessMethod.getName()+"anarana");
                         HashMap<String, Object> map = (HashMap)sessMap;
                         PrintWriter out = response.getWriter();
                         map.forEach((key, value) -> {
-                            out.println(key+"  "+value.getClass().getName());
                             request.getSession().setAttribute(key, value);
                         });
                     }
