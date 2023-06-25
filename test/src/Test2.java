@@ -63,4 +63,13 @@ public class Test2 {
         modelView.addItem("session", s);
         return modelView;
     }
+
+    @RestAPI
+    @Url(name = "test2-json")
+    public Test2 ok() {
+        Test2 test2 = new Test2();
+        test2.setAdmin("admin");
+        test2.setOk("ok");
+        return test2;
+    }
 }

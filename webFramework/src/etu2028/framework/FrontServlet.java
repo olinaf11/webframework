@@ -406,7 +406,11 @@ public class FrontServlet extends HttpServlet {
                 dispatcher(request, response, modelView);
             }
         }else{
-            throw new Exception("La method "+method.getName()+" doit avoir comme type de retour Model View");
+            if (method.isAnnotationPresent(RestAPI.class)) {
+                Gson gson = new Gson();
+                String json = gson.toJson(resp);
+                response.getWriter().println(json);
+            }
         }
     }
 }

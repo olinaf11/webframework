@@ -14,5 +14,6 @@
     <% } %>
     <p><%=sess%></p>
     <p><%=json%></p>
+    <a href="test2-json">Test json</a>
 </body>
 </html>
