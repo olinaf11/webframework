@@ -13,6 +13,8 @@
         <input type="submit">
       </form>
       <a href="test2-list">List emp</a>
+      <a href="test2-logout">Log out</a>
+      <a href="test2-logout2">Log out2</a>
     </ul>
 </body>
 </html>

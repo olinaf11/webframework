@@ -1,12 +1,15 @@
 package etu2028.framework;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class ModelView {
-    String view;
-    HashMap<String, Object> data;
-    HashMap<String, Object> session;
-    boolean isJson = false;
+    private String view;
+    private HashMap<String, Object> data;
+    private HashMap<String, Object> session;
+    private boolean isJson = false;
+    private boolean invalidateSession = false;
+    private List<String> removeSession;
 
     public String getView() {
         return view;
@@ -50,6 +53,18 @@ public class ModelView {
     }
     public boolean isJson() {
         return isJson;
+    }
+    public void setInvalidateSession(boolean invalidateSession) {
+        this.invalidateSession = invalidateSession;
+    }
+    public boolean isInvalidateSession() {
+        return invalidateSession;
+    }
+    public void setRemoveSession(List<String> removeSession) {
+        this.removeSession = removeSession;
+    }
+    public List<String> getRemoveSession() {
+        return removeSession;
     }
 
     public ModelView(){};
