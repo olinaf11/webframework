@@ -339,8 +339,6 @@ public class FrontServlet extends HttpServlet {
             }else{
                 sessionAdd(session, sessionProfil, sessionName, modelView);
             }
-        }else{
-            throw new Exception("La session n'existe pas");
         }
     }
     public void sessionAdd(HttpSession session, String sessionProfil, String sessionName, ModelView modelView){
@@ -403,9 +401,10 @@ public class FrontServlet extends HttpServlet {
 
             }
             if (method.isAnnotationPresent(Authentification.class)) {
-                if (((Authentification)method.getAnnotation(Authentification.class)).user().trim().compareTo((String)request.getSession().getAttribute(getSessionProfile()))== 0) {
-                    checkMethod(method, modelView, request, request.getSession(), getSessionName(), getSessionProfile());
-                    dispatcher(request, response, modelView);
+                if ((String)request.getSession().getAttribute(getSessionProfile())!=null) {
+                    if (((Authentification)method.getAnnotation(Authentification.class)).user().trim().compareTo((String)request.getSession().getAttribute(getSessionProfile()))== 0) {
+                        dispatcher(request, response, modelView);
+                    }
                 }
                 else{
                     throw new Exception("Vous n'avez pas le droit d'acceder a cette page");

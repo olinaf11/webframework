@@ -1,6 +1,8 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import etu2028.framework.ModelView;
 import etu2028.framework.annotation.*;
@@ -71,5 +73,19 @@ public class Test2 {
         test2.setAdmin("admin");
         test2.setOk("ok");
         return test2;
+    }
+    @Url(name = "test2-logout")
+    public ModelView logout(){
+        ModelView modelView = new ModelView("employe.jsp");
+        modelView.setInvalidateSession(true);
+        return modelView;
+    }
+    @Url(name = "test2-logout2")
+    public ModelView logout2(){
+        ModelView modelView = new ModelView("employe.jsp");
+        List<String> sessionName = new ArrayList<>();
+        sessionName.add("profil");
+        modelView.setRemoveSession(sessionName);
+        return modelView;
     }
 }
