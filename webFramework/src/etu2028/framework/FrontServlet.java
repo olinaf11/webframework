@@ -379,6 +379,14 @@ public class FrontServlet extends HttpServlet {
                 String json = gson.toJson(modelView.getData());
                 setJson(json);
             }
+            if (modelView.isInvalidateSession()) {
+                request.getSession().invalidate();
+            }
+            if (modelView.getRemoveSession()!=null) {
+                for (String keyString : modelView.getRemoveSession()) {
+                    request.getSession().removeAttribute(keyString);
+                }
+            }
             if (method.isAnnotationPresent(Session.class)) {
                 Field sessionField = object.getClass().getDeclaredField("session");
                 if (sessionField!=null) {
@@ -396,6 +404,7 @@ public class FrontServlet extends HttpServlet {
             }
             if (method.isAnnotationPresent(Authentification.class)) {
                 if (((Authentification)method.getAnnotation(Authentification.class)).user().trim().compareTo((String)request.getSession().getAttribute(getSessionProfile()))== 0) {
+                    checkMethod(method, modelView, request, request.getSession(), getSessionName(), getSessionProfile());
                     dispatcher(request, response, modelView);
                 }
                 else{
