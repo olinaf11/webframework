@@ -5,14 +5,16 @@ jarc=./temp/WEB-INF/lib/framework.jar:./temp/WEB-INF/lib/gson-2.8.2.jar
 java=./test/src/*java
 webxml=./test/web.xml
 jsp=./test/view/*.jsp
+css=./test/view/assets/*.css
 
 #create directory temp
-mkdir temp temp/WEB-INF temp/WEB-INF/classes temp/WEB-INF/lib
+mkdir temp temp/assets temp/WEB-INF temp/WEB-INF/classes temp/WEB-INF/lib
 
 #copy all necessary in temp
 cp $jar ./temp/WEB-INF/lib/
 cp $webxml ./temp/WEB-INF
 cp $jsp ./temp/
+cp $css ./temp/assets
 
 #Compile des classes du test
 javac -cp ./temp/WEB-INF/lib/framework.jar -parameters -d ./temp/WEB-INF/classes $java

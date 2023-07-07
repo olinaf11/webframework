@@ -27,6 +27,7 @@ import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -192,7 +193,7 @@ public class FrontServlet extends HttpServlet {
                 out.println(fields.length);
                 for (Field field : fields) {
                     String[] parameter = inputName.get(field.getName());
-                    System.out.println(request.getParameter(field.getName()));
+                    // System.out.println(request.getParameter(field.getName()));
                     try {
                         if (field.getType() == FileUpload.class) {
                             Method meth = stringMatching(methods, "set"+Util.toUpperFirstChar(field.getName()));
@@ -281,16 +282,14 @@ public class FrontServlet extends HttpServlet {
     public boolean checkParams(Method method,Vector<Object> value , HttpServletRequest request) throws Exception,ServletException{
         Parameter[] parameters = method.getParameters();
         int count = 0;
+        // System.out.println(request.getParameter("date"));
         for (Parameter parameter : parameters) {
             String params = request.getParameter(parameter.getName());
-            System.out.println(request.getParameter(parameter.getName()) +" okok");
             if (params != null) {
                 count++;
                 value.add(castSimple(parameter.getType(), params));
             }
         }
-        System.out.println(count);
-        System.out.println(parameters.length);
         if (parameters.length == count && parameters.length>0) {
             return true;
         }
@@ -298,6 +297,11 @@ public class FrontServlet extends HttpServlet {
     }
 
     public Object castSimple(Class<?> type, String params) throws Exception{
+        System.out.println("ok");
+        if (type.isAssignableFrom(java.sql.Date.class)) {
+            System.out.println("ko");
+            return java.sql.Date.valueOf(params);
+        }
         return type.getDeclaredConstructor(String.class).newInstance(params);
     }
 

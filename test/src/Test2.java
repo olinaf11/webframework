@@ -32,7 +32,7 @@ public class Test2 {
         this.admin = admin;
     }
 
-    @Url(name = "test2-insert")
+    @Url(name = "test2-insert.do")
     public ModelView insert(){
         ModelView modelView = new ModelView("singleton.jsp");
         modelView.addItem("test", this);
@@ -51,7 +51,7 @@ public class Test2 {
     }
 
     @Session
-    @Authentification(user = "admin")
+    @Authentification(user = "admin.do")
     @Url(name = "test2-list")
     public ModelView list(){
         ModelView modelView = new ModelView("list.jsp");
@@ -67,20 +67,20 @@ public class Test2 {
     }
 
     @RestAPI
-    @Url(name = "test2-json")
+    @Url(name = "test2-json.do")
     public Test2 ok() {
         Test2 test2 = new Test2();
         test2.setAdmin("admin");
         test2.setOk("ok");
         return test2;
     }
-    @Url(name = "test2-logout")
+    @Url(name = "test2-logout.do")
     public ModelView logout(){
         ModelView modelView = new ModelView("employe.jsp");
         modelView.setInvalidateSession(true);
         return modelView;
     }
-    @Url(name = "test2-logout2")
+    @Url(name = "test2-logout2.do")
     public ModelView logout2(){
         ModelView modelView = new ModelView("employe.jsp");
         List<String> sessionName = new ArrayList<>();

@@ -11,5 +11,6 @@
     <p><%=test.getNom()%></p>
     <p><%=test.getId()%></p>
     <p><%=test.getFileUpload().getName()%></p>
+    <p><%=test.getDate()%></p>
 </body>
 </html>
